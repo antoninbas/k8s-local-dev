@@ -62,11 +62,17 @@ function antrea_create_cluster() {
     fi
     pushd "${ANTREA_DIR}"/ci/kind 1> /dev/null || exit
         echo "Setting cluster..."
-        if ./kind-setup.sh create "${ANTREA_CLUSTER_NAME}"; then
-            echo "Cluster created...."
+        # kind-setup.sh will deploy Antrea with a Geneve overlay, for which
+        # there is a know issue when using the OpenvSwitch userspace
+        # datapath. By providing '--antrea-cni false' we can deploy Antrea
+        # ourselves with a manifest that uses VXLAN instead of Geneve.
+        if ./kind-setup.sh create "${ANTREA_CLUSTER_NAME}" --antrea-cni false; then
+            echo "Cluster created"
         else
             echo -e "[ \e[1m\e[31mFAIL\e[0m  ] cannot create kind cluster"
             exit 1
         fi
     popd 1> /dev/null || exit
+    echo "Deploying Antrea..."
+    "${ANTREA_DIR}"/hack/generate-manifest.sh --kind --tun vxlan | "${KUBECTL_CMD}" apply --context "kind-${ANTREA_CLUSTER_NAME}" -f -
 }
