@@ -28,7 +28,8 @@ download_tools
 antrea_clone_repo_and_set_version \
 	"${ANTREA_VERSION}"
 
-antrea_create_cluster
+antrea_create_cluster \
+	"${ANTREA_VERSION}"
 
 wait_all_pods_status_running \
 	"${WAIT_PODS_TO_BECAME_RUNNING_SEC}"

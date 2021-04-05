@@ -25,6 +25,8 @@ source "${DIR_LIBS}/kind.sh"
 # shellcheck source=./common.sh
 source "${DIR_LIBS}/common.sh"
 
+ANTREA_IMG_NAME="projects.registry.vmware.com/antrea/antrea-ubuntu"
+
 function antrea_clone_repo_and_set_version() {
     ##################################################################
     # Description:                                                   #
@@ -55,7 +57,10 @@ function antrea_create_cluster() {
     ##################################################################
     # Description:                                                   #
     #   create the kind cluster                                      #
+    #                                                                #
+    #   Args: ${1} - version                                         #
     ##################################################################
+    version="${1}"
     if [[ ! -d "${ANTREA_DIR}" ]] ; then
         echo -e "[ \e[1m\e[31mFAIL\e[0m  ] ${ANTREA_DIR} git tree is required."
         exit 1
@@ -74,5 +79,5 @@ function antrea_create_cluster() {
         fi
     popd 1> /dev/null || exit
     echo "Deploying Antrea..."
-    "${ANTREA_DIR}"/hack/generate-manifest.sh --kind --tun vxlan | "${KUBECTL_CMD}" apply --context "kind-${ANTREA_CLUSTER_NAME}" -f -
+    IMG_NAME="${ANTREA_IMG_NAME}" IMG_TAG="${version}" "${ANTREA_DIR}"/hack/generate-manifest.sh --mode release --kind --tun vxlan | "${KUBECTL_CMD}" apply --context "kind-${ANTREA_CLUSTER_NAME}" -f -
 }
